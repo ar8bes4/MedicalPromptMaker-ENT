@@ -1,16 +1,18 @@
-# React + Vite
+# 🏥 MedicalPromptMaker-ENT (耳鼻咽喉科専用)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+高度な医療説明プロンプトを作成するツールの、耳鼻咽喉科（ENT）特化エディションです。
 
-Currently, two official plugins are available:
+## 👂 概要
+通常版の `MedicalPromptMaker` に加え、耳鼻咽喉科領域に特化した疾患データセットと、患者説明用の特殊なロジックを搭載しています。特に視覚的・空間的な説明が必要な「めまい」「難聴」「鼻副鼻腔疾患」などにおいて、AI から最適な比喩を用いた分かりやすい説明を引き出すことができます。
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## ✨ 特化機能
+- **ENT特化データセット**: 中耳炎、副鼻腔炎、咽頭がん等の主要疾患に加え、専門医レベルの治療オプション（SSHL、BPPV等）を網羅。
+- **耳鼻科特有の説明スタイル**: 内視鏡所見の言語化や、手術説明（ESS、鼓室形成術など）の構造化をサポート。
+- **解剖学的正確性**: AI が解剖学的（「槌骨」「半規管」など）に矛盾のない説明を行うための制約を自動付与。
 
-## React Compiler
+## 🛠️ 技術スタック
+- **Vite + React**: 快適な操作感と HMR。
+- **ENT Logic**: `data/medicalData.js` の耳鼻科セクションを拡張。
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🌍 社会的意義
+耳鼻科領域は複雑な解剖構造を持つため、患者への説明難度が非常に高い分野です。本ツールは、医師の言語的負担を軽減し、患者の納得（インフォームド・コンセント）の質を高めることを目指しています。
