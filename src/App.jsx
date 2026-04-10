@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { saveAs } from 'file-saver';
 import { medicalSystems, medicalData, languages, comprehensionLevels, volumeOptions, diagramFormats, slideVolumeOptions } from './data/medicalData';
 
 function App() {
@@ -13,6 +16,14 @@ function App() {
   const [slideVolume, setSlideVolume] = useState('slide_10');
   const [diagramFormat, setDiagramFormat] = useState('infographic_v');
   const [hasSample, setHasSample] = useState(false);
+  const [llmResult, setLlmResult] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [apiError, setApiError] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // GAS 環境かどうかの判定
+  const isGas = typeof google !== 'undefined' && google.script && google.script.run;
 
   useEffect(() => {
     // 系統が変わったら、その系統の最初の診療科をデフォルトに設定する
@@ -26,6 +37,17 @@ function App() {
     // 診療科が変わってもデフォルトで自由記載を選択状態にする
     setDisease('custom');
   }, [dept]);
+
+  useEffect(() => {
+    // GAS 環境の場合、管理者かどうかを確認する
+    if (isGas) {
+      google.script.run
+        .withSuccessHandler((adminStatus) => {
+          setIsAdmin(adminStatus);
+        })
+        .checkAdminStatus();
+    }
+  }, [isGas]);
 
   const generatedPrompt = React.useMemo(() => {
     const targetDisease = disease === 'custom' ? customDisease : disease;
@@ -251,6 +273,80 @@ ${constraintsGuideline}
     alert('プロンプトをクリップボードにコピーしました！');
   };
 
+  const handleGenerate = async () => {
+    setIsGenerating(true);
+    setApiError('');
+    setLlmResult('');
+
+    if (isGas) {
+      // GAS 環境の場合
+      google.script.run
+        .withSuccessHandler((result) => {
+          setLlmResult(result);
+          setIsGenerating(false);
+        })
+        .withFailureHandler((err) => {
+          setApiError(err.message);
+          setIsGenerating(false);
+        })
+        .generateGeminiContent(generatedPrompt);
+    } else {
+      // ローカル/Vercel 環境の場合
+      try {
+        const response = await fetch('/api/generate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ prompt: generatedPrompt }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || '生成に失敗しました');
+        }
+
+        const data = await response.json();
+        setLlmResult(data.text);
+      } catch (err) {
+        console.error(err);
+        setApiError(err.message);
+      } finally {
+        setIsGenerating(false);
+      }
+    }
+  };
+
+  const copyLlmResult = () => {
+    navigator.clipboard.writeText(llmResult);
+    alert('生成結果をクリップボードにコピーしました！');
+  };
+
+  const downloadLlmResult = () => {
+    const blob = new Blob([llmResult], { type: 'text/markdown;charset=utf-8' });
+    const targetDisease = disease === 'custom' ? customDisease : disease;
+    saveAs(blob, `medical_explanation_${targetDisease}.md`);
+  };
+
+  const handleSaveToDocs = () => {
+    if (!isGas) return;
+    setIsSaving(true);
+    const targetDisease = disease === 'custom' ? customDisease : disease;
+    const title = `${targetDisease}に関する説明資料`;
+
+    google.script.run
+      .withSuccessHandler((result) => {
+        setIsSaving(false);
+        alert(`Google ドキュメントを作成しました！\nURL: ${result.url}`);
+        window.open(result.url, '_blank');
+      })
+      .withFailureHandler((err) => {
+        setIsSaving(false);
+        alert(`エラー: ${err.message}`);
+      })
+      .saveToGoogleDocs(llmResult, title);
+  };
+
   return (
     <div className="container">
       <h1>Medical Prompt Maker (耳鼻科版)</h1>
@@ -407,8 +503,52 @@ ${constraintsGuideline}
             <h3>生成されたプロンプト</h3>
             <button className="copy-btn" onClick={copyToClipboard}>コピー</button>
           </div>
-          <div className="result-content">
+          <div className="result-content prompt-box">
             {generatedPrompt}
+          </div>
+          
+          {contentType === 'document' && (
+            <div className="action-center">
+              <button 
+                className="generate-btn" 
+                onClick={handleGenerate} 
+                disabled={isGenerating}
+              >
+                {isGenerating ? '生成中...' : 'Gemini で実際に生成する'}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {apiError && (
+        <div className="error-message">
+          <p>⚠️ エラー: {apiError}</p>
+        </div>
+      )}
+
+      {llmResult && (
+        <div className="llm-result-area">
+          <div className="result-header">
+            <h3>Gemini の生成結果</h3>
+            <div className="button-group">
+              <button className="copy-btn secondary" onClick={copyLlmResult}>文面をコピー</button>
+              <button className="copy-btn secondary" onClick={downloadLlmResult}>MDとして保存</button>
+              {isAdmin && isGas && (
+                <button 
+                  className="copy-btn docs-btn" 
+                  onClick={handleSaveToDocs}
+                  disabled={isSaving}
+                >
+                  {isSaving ? '保存中...' : 'Googleドキュメントに保存'}
+                </button>
+              )}
+            </div>
+          </div>
+          <div className="llm-result-content">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {llmResult}
+            </ReactMarkdown>
           </div>
         </div>
       )}
