@@ -1,7 +1,11 @@
 # 🏥 MedicalPromptMaker-ENT
 
-> [!INFO] ステータス: 開発中
+> [!INFO] ステータス: 稼働中
 > 高度な医療説明プロンプトを作成するツールの、耳鼻咽喉科（ENT）特化エディションです。
+
+![React](https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=react&logoColor=black)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=vite&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black)
 
 ## 👂 概要 (Overview)
 通常版の `MedicalPromptMaker` に加え、耳鼻咽喉科領域に特化した疾患データセットと、患者説明用の特殊なロジックを搭載しています。特に視覚的・空間的な説明が必要な「めまい」「難聴」「鼻副鼻腔疾患」などにおいて、AI から最適な比喩を用いた分かりやすい説明を引き出すことができます。
