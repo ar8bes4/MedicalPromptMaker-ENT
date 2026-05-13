@@ -1,3 +1,7 @@
+const CONFIG = {
+  GEMINI_MODEL: 'gemini-3.1-flash-lite'
+};
+
 /**
  * ウェブアプリのメインエントリポイント
  */
@@ -28,7 +32,7 @@ function checkAdminStatus() {
 function generateGeminiContent(prompt) {
   const properties = PropertiesService.getScriptProperties();
   const apiKey = properties.getProperty('GEMINI_API_KEY');
-  const modelName = properties.getProperty('GEMINI_MODEL') || 'gemini-1.5-flash';
+  const modelName = CONFIG.GEMINI_MODEL;
 
   if (!apiKey) {
     throw new Error('GEMINI_API_KEY が設定されていません。スクリプトプロパティを確認してください。');
