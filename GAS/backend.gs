@@ -9,7 +9,7 @@ function doGet() {
   return HtmlService.createTemplateFromFile('index')
     .evaluate()
     .setTitle('Medical Prompt Maker - ENT')
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.DEFAULT)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
 
@@ -20,16 +20,25 @@ function checkAdminStatus() {
   const effectiveUser = Session.getEffectiveUser().getEmail();
   const activeUser = Session.getActiveUser().getEmail();
   
-  // 先生（オーナー）本人がアクセスしている場合
-  // パターンA（自分の権限で実行）の場合、effectiveUser は常にオーナー
-  // activeUser は認証済みユーザーがいれば取得可能
-  return effectiveUser === activeUser || activeUser === ""; // activeUserが取れない場合はデフォルトで非表示にするか、運用に合わせて調整
+  // 先生（オーナー）本人がアクセスしている場合のみ許可（Fail-Closed）
+  // 未認証・外部アクセス時は activeUser が空文字となるため false を返す
+  return Boolean(effectiveUser && activeUser && effectiveUser === activeUser);
 }
 
 /**
  * Gemini API を呼び出す
  */
 function generateGeminiContent(prompt) {
+  // UIの表示制御に依存せず、API利用前にサーバーで認可する。
+  if (!checkAdminStatus()) {
+    throw new Error('この操作は管理者のみ許可されています。');
+  }
+  if (typeof prompt !== 'string' || !prompt.trim()) {
+    throw new Error('有効なプロンプトが指定されていません。');
+  }
+  if (prompt.length > 20000) {
+    throw new Error('プロンプトの文字数が上限（20,000文字）を超えています。');
+  }
   const properties = PropertiesService.getScriptProperties();
   const apiKey = properties.getProperty('GEMINI_API_KEY');
   const modelName = CONFIG.GEMINI_MODEL;
