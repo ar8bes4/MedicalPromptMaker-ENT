@@ -19,5 +19,9 @@
 - **Frontend / Tooling**: Vite + React (快適な操作感と HMR)
 - **ENT Logic**: `data/medicalData.js` の耳鼻科セクションを拡張
 
+## API連携の利用制約
+
+現在のReact UIは認証トークンを送信しないため、Node API経由の生成を再開するには利用者認証との連携が必要です。Node APIは `API_ACCESS_TOKEN` 未設定時に503、`x-api-token` の不一致時に401を返します。共有秘密を公開JavaScriptへ埋め込まず、設定と本番反映前の確認事項は [SECURITY.md](SECURITY.md) を参照してください。
+
 ## 🌍 社会的意義 (Mission)
 耳鼻科領域は複雑な解剖構造を持つため、患者への説明難度が非常に高い分野です。本ツールは、医師の言語的負担を軽減し、患者の納得（インフォームド・コンセント）の質を高めることを目指しています。
